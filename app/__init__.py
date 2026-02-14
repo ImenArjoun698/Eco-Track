@@ -6,7 +6,6 @@ def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev')
 
-    # Register auth blueprint
     app.register_blueprint(auth)
 
     @app.route('/')
