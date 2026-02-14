@@ -8,5 +8,6 @@ def login():
 
 @auth.route('/register')
 def register():
-    return "Register page"
+    return render_template("register.html")
+
 
