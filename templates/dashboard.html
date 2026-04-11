@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard - GreenApp</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+  <div class="container">
+    <div class="card">
+      <h1>🌍 Dashboard</h1>
+      <p class="subtitle">Bienvenue {{ user.firstname }} {{ user.lastname }} !</p>
+
+      <div class="flash ok">
+        Connecté avec : <strong>{{ user.email }}</strong>
+      </div>
+
+      <p class="switch">
+        <a href="{{ url_for('logout') }}">Se déconnecter</a>
+      </p>
+    </div>
+  </div>
+
+</body>
+</html>
