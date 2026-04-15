@@ -1,40 +1,30 @@
-<!doctype html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Connexion - GreenApp</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
+{% extends "base.html" %}
 
-  <div class="container">
-    <div class="card">
+{% block body_class %}login-page{% endblock %}
 
-      <h1>🌍 GreenApp</h1>
-      <p class="subtitle">Ensemble contre le réchauffement climatique</p>
+{% block content %}
+<div class="login-wrapper">
+    <div class="login-card">
+        <div class="login-logo">🌍</div>
+        <h1>GreenApp</h1>
+        <p class="login-subtitle">Ensemble contre le réchauffement climatique</p>
 
-      {% with messages = get_flashed_messages() %}
-        {% if messages %}
-          <div class="flash ok">
-            {{ messages[0] }}
-          </div>
-        {% endif %}
-      {% endwith %}
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="flash-message">{{ messages[0] }}</div>
+          {% endif %}
+        {% endwith %}
 
-      <form method="post" action="/login">
-        <input name="email" type="email" placeholder="Adresse email" required>
-        <input name="password" type="password" placeholder="Mot de passe" required>
-        <button type="submit">Se connecter</button>
-      </form>
+        <form method="post" action="/login" class="login-form">
+            <input name="email" type="email" placeholder="Adresse email" required>
+            <input name="password" type="password" placeholder="Mot de passe" required>
+            <button type="submit">Se connecter</button>
+        </form>
 
-      <p class="switch">
-        Pas encore de compte ?
-        <a href="/register">Créer un compte</a>
-      </p>
-
+        <p class="login-link">
+            Pas encore de compte ?
+            <a href="/register">Créer un compte</a>
+        </p>
     </div>
-  </div>
-
-</body>
-</html>
+</div>
+{% endblock %}
