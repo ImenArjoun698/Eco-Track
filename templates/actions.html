@@ -1,21 +1,33 @@
 {% extends "base.html" %}
 
-{% block body_class %}actions-page{% endblock %}
-
 {% block content %}
+
+<!-- 🔔 NOTIFICATION -->
+{% if notification %}
+<div class="notification-banner">
+    {{ notification }}
+</div>
+{% endif %}
+
+<!-- 🎁 CADEAU -->
+{% if gift %}
+<div class="gift-box">
+    <h3>🎁 Récompense débloquée</h3>
+    <p>{{ gift }}</p>
+</div>
+{% endif %}
+
+<!-- TOP BAR -->
 <div class="top-bar">
-    <div class="top-left">
-        <h2>🌱 Actions écologiques</h2>
-        <p class="top-subtitle">Réalisez des gestes simples et gagnez des points</p>
-    </div>
+    <h2>🌱 Actions écologiques</h2>
 
     <div class="nav-buttons">
-        <a href="/dashboard" class="btn btn-gray">⬅ Retour</a>
-        <a href="/settings" class="btn">⚙ Paramètres</a>
+        <a href="/settings" class="btn btn-gray">⚙ Paramètres</a>
         <a href="/logout" class="btn btn-red">🚪 Déconnexion</a>
     </div>
 </div>
 
+<!-- STATS -->
 <div class="stats-row">
     <div class="stat-card">
         <span class="stat-number">{{ score_total }}</span>
@@ -27,29 +39,40 @@
         <span class="stat-label">Actions faites</span>
     </div>
 
-    <div class="stat-card badge-card">
+    <div class="stat-card">
         <span class="stat-number">{{ badge }}</span>
-        <span class="stat-label">Badge écologique</span>
+        <span class="stat-label">Badge</span>
     </div>
 </div>
 
+<hr>
+
+<!-- ACTIONS -->
 <div class="actions-container">
     {% for action in actions %}
-        <div class="action-card">
+        <div class="action-card" onclick="animateCard(this)">
+            
             <div class="action-left">
-                <div class="action-icon">♻️</div>
-                <div class="action-info">
-                    <h3>{{ action.name }}</h3>
-                    <p class="points">{{ action.points }} points</p>
-                </div>
+                <h3>{{ action.name }}</h3>
+                <p class="points">{{ action.points }} points</p>
             </div>
 
-            <div class="action-right">
-                <form action="/actions/do/{{ action.id }}" method="POST">
-                    <button type="submit" class="btn btn-green btn-action">Faire</button>
-                </form>
-            </div>
+            <form method="POST" action="/actions/do/{{ action.id }}">
+                <button type="submit" class="btn-action">✔ Faire</button>
+            </form>
+
         </div>
     {% endfor %}
 </div>
+
+<!-- JS -->
+<script>
+function animateCard(card) {
+    card.classList.add("clicked");
+    setTimeout(() => {
+        card.classList.remove("clicked");
+    }, 300);
+}
+</script>
+
 {% endblock %}

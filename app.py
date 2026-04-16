@@ -99,7 +99,28 @@ def actions_page():
         if action:
             score_total += action.points
 
-    total_actions = len(historiques)
+    nb_actions_faites = len(historiques)
+
+    # -------------------------
+    # 🎁 RECOMPENSES + NOTIFICATIONS
+    # -------------------------
+    notification = None
+    gift = None
+
+    if score_total >= 300:
+        gift = "🎁 CARREFOUR -15% (CODE: CARREFOUR15)"
+        notification = "🎉 Bravo ! Toutes les récompenses sont débloquées"
+
+    elif score_total >= 100:
+        gift = "🎁 -20% réduction (CODE: GREEN20)"
+        notification = f"🔥 Plus que {300 - score_total} points pour Carrefour -15%"
+
+    elif score_total >= 50:
+        gift = "🎁 LIDL -10% (CODE: LIDL10)"
+        notification = f"🎯 Plus que {100 - score_total} points pour -20%"
+
+    else:
+        notification = f"🚀 Plus que {50 - score_total} points pour débloquer Lidl -10%"
 
     if score_total >= 100:
         badge = "🌳 Héros écologique"
@@ -112,8 +133,10 @@ def actions_page():
         "actions.html",
         actions=actions,
         score_total=score_total,
-        total_actions=total_actions,
-        badge=badge
+        nb_actions_faites=nb_actions_faites,
+        badge=badge,
+        notification=notification,
+        gift=gift
     )
 
 
