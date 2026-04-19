@@ -1,54 +1,56 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session
+from functools import wraps
 from models import db, User, Action, Historique
 
-# Création de l'application Flask
 app = Flask(__name__)
 
-# Configuration de base
-app.config["SECRET_KEY"] = "dev-key-change-moi"  # pour les sessions
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"  # base de données
+app.config["SECRET_KEY"] = "dev-key-change-moi"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-# Initialisation de la base de données
 db.init_app(app)
 
 # -------------------------
-# PAGE LOGIN
+# LOGIN REQUIRED
+# -------------------------
+def login_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if "user_id" not in session:
+            return redirect(url_for("login_page"))
+        return f(*args, **kwargs)
+    return wrapper
+
+
+# -------------------------
+# LOGIN
 # -------------------------
 @app.get("/")
 def login_page():
-    # Affiche la page de connexion
     return render_template("login.html")
 
 
 @app.post("/login")
 def login_post():
-    # Récupération des données du formulaire
     email = request.form.get("email", "").strip().lower()
     password = request.form.get("password", "")
 
-    # Recherche de l'utilisateur dans la base
     user = User.query.filter_by(email=email).first()
 
-    # Vérifie si l'utilisateur existe
     if not user:
         flash("Email inconnu.")
         return redirect(url_for("login_page"))
 
-    # Vérifie le mot de passe
     if not user.check_password(password):
         flash("Mot de passe incorrect.")
         return redirect(url_for("login_page"))
 
-    # Connexion → on stocke l'id dans la session
     session["user_id"] = user.id
-
-    # Redirection vers les actions
     return redirect(url_for("actions_page"))
 
 
 # -------------------------
-# PAGE REGISTER
+# REGISTER
 # -------------------------
 @app.get("/register")
 def register_page():
@@ -57,24 +59,22 @@ def register_page():
 
 @app.post("/register")
 def register_post():
-    # Récupération des données
     firstname = request.form.get("firstname")
     lastname = request.form.get("lastname")
-    email = request.form.get("email").lower()
+    email = request.form.get("email", "").strip().lower()
     password = request.form.get("password")
 
-    # Vérifie si l'email existe déjà
+    if not firstname or not lastname or not email or not password:
+        flash("Tous les champs sont obligatoires.")
+        return redirect(url_for("register_page"))
+
     if User.query.filter_by(email=email).first():
         flash("Email déjà utilisé.")
         return redirect(url_for("register_page"))
 
-    # Création utilisateur
     user = User(firstname=firstname, lastname=lastname, email=email)
-
-    # Hash du mot de passe
     user.set_password(password)
 
-    # Sauvegarde en base
     db.session.add(user)
     db.session.commit()
 
@@ -83,33 +83,58 @@ def register_post():
 
 
 # -------------------------
-# PAGE ACTIONS
+# ACTIONS
 # -------------------------
 @app.get("/actions")
+@login_required
 def actions_page():
     user_id = session.get("user_id")
 
-    # Vérifie si connecté
-    if not user_id:
-        return redirect(url_for("login_page"))
-
-    # Récupère toutes les actions disponibles
     actions = Action.query.all()
-
-    # Récupère l'historique de l'utilisateur
     historiques = Historique.query.filter_by(user_id=user_id).all()
 
-    # Calcul du score total
     score_total = 0
     for h in historiques:
         action = db.session.get(Action, h.action_id)
         if action:
             score_total += action.points
 
-    # Nombre d'actions réalisées
-    total_actions = len(historiques)
+    nb_actions_faites = len(historiques)
 
-    # Attribution d'un badge simple
+    # 🌍 PLANÈTE
+    if score_total < 50:
+        planet = "🌫️"
+        planet_text = "Planète polluée"
+    elif score_total < 150:
+        planet = "🌿"
+        planet_text = "Planète en amélioration"
+    else:
+        planet = "🌳"
+        planet_text = "Planète en pleine santé"
+
+    # 📊 PROGRESSION
+    progress = min(score_total, 100)
+
+    # 🎁 RECOMPENSES
+    notification = None
+    gift = None
+
+    if score_total >= 300:
+        gift = "🎁 CARREFOUR -15%"
+        notification = "🎉 Bravo !"
+
+    elif score_total >= 100:
+        gift = "🎁 -20%"
+        notification = f"🔥 Plus que {300 - score_total} points"
+
+    elif score_total >= 50:
+        gift = "🎁 LIDL -10%"
+        notification = f"🎯 Plus que {100 - score_total} points"
+
+    else:
+        notification = f"🚀 Plus que {50 - score_total} points"
+
+    # BADGE
     if score_total >= 100:
         badge = "🌳 Héros écologique"
     elif score_total >= 50:
@@ -117,28 +142,28 @@ def actions_page():
     else:
         badge = "🌿 Débutant"
 
-    # Envoie les données au HTML
     return render_template(
         "actions.html",
+        planet=planet,
+        planet_text=planet_text,
+        progress=progress,
         actions=actions,
         score_total=score_total,
-        total_actions=total_actions,
-        badge=badge
+        nb_actions_faites=nb_actions_faites,
+        badge=badge,
+        notification=notification,
+        gift=gift
     )
 
 
 # -------------------------
-# FAIRE UNE ACTION
+# DO ACTION
 # -------------------------
 @app.post("/actions/do/<int:action_id>")
+@login_required
 def do_action(action_id):
     user_id = session.get("user_id")
 
-    # Vérifie si connecté
-    if not user_id:
-        return redirect(url_for("login_page"))
-
-    # Ajoute l'action dans l'historique
     historique = Historique(user_id=user_id, action_id=action_id)
     db.session.add(historique)
     db.session.commit()
@@ -148,52 +173,51 @@ def do_action(action_id):
 
 
 # -------------------------
-# PARAMETRES (simple)
+# SETTINGS
 # -------------------------
 @app.get("/settings")
+@login_required
 def settings():
     user_id = session.get("user_id")
 
-    # Vérifie si connecté
-    if not user_id:
-        return redirect(url_for("login_page"))
+    user = db.session.get(User, user_id)
 
-    return render_template("settings.html")
+    historiques = Historique.query.filter_by(user_id=user_id).all()
+    actions_count = len(historiques)
+
+    co2_saved = actions_count * 2.3
+
+    if actions_count >= 50:
+        level = "🌍 Champion du climat"
+    elif actions_count >= 20:
+        level = "🌱 Eco actif"
+    else:
+        level = "🌿 Débutant"
+
+    return render_template(
+        "settings.html",
+        user=user,
+        actions_count=actions_count,
+        co2_saved=co2_saved,
+        level=level
+    )
 
 
 # -------------------------
-# DECONNEXION
+# LOGOUT
 # -------------------------
 @app.get("/logout")
+@login_required
 def logout():
-    # Supprime la session
     session.clear()
     flash("Déconnecté.")
     return redirect(url_for("login_page"))
 
 
 # -------------------------
-# LANCEMENT APP
+# RUN
 # -------------------------
 if __name__ == "__main__":
     with app.app_context():
-        db.create_all()  # crée les tables si elles n'existent pas
-
-        # Ajoute des actions par défaut si la table est vide
-        if not Action.query.first():
-            actions = [
-                Action(name="Vélo (trajet quotidien)", points=10),
-                Action(name="Tri des déchets", points=5),
-                Action(name="Économie d’eau", points=8),
-                Action(name="Réduction chauffage", points=6),
-                Action(name="Utilisation gourde réutilisable", points=4),
-                Action(name="Extinction des lumières inutiles", points=3),
-                Action(name="Réduction plastique", points=7),
-                Action(name="Plantation d’un arbre", points=15),
-                Action(name="Compostage des déchets organiques", points=8)
-            ]
-            db.session.add_all(actions)
-            db.session.commit()
-
-    # Lance le serveur
+        db.create_all()
     app.run(debug=True)
