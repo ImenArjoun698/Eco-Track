@@ -300,3 +300,31 @@ body.actions-page {
     text-align: center;
     font-weight: bold;
 }
+.btn-historique {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    background: linear-gradient(135deg, #43a047, #2e7d32);
+    color: white;
+    text-decoration: none;
+
+    padding: 10px 16px;
+    border-radius: 12px;
+
+    font-weight: 600;
+    font-size: 14px;
+
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+
+    transition: all 0.25s ease;
+}
+
+.btn-historique:hover {
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+}
+
+.btn-historique span:first-child {
+    font-size: 18px;
+}

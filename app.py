@@ -139,7 +139,62 @@ def actions_page():
         gift=gift
     )
 
+# -------------------------
+# HISTORIQUE PAGE
+# -------------------------
+@app.get("/historique")
+@login_required
+def historique_page():
+    user_id = session.get("user_id")
 
+    historiques = (
+        Historique.query
+        .filter_by(user_id=user_id)
+        .order_by(Historique.id.desc())
+        .all()
+    )
+
+    data = []
+    total_points = 0
+
+    for h in historiques:
+        action = db.session.get(Action, h.action_id)
+        if action:
+            data.append({
+                "id": h.id,
+                "name": action.name,
+                "points": action.points
+            })
+            total_points += action.points
+
+    return render_template(
+        "historique.html",
+        historiques=data,
+        total_points=total_points,
+        total_actions=len(data)
+    )
+
+# -------------------------
+# DELETE ACTION FROM HISTORY
+# -------------------------
+@app.post("/historique/delete/<int:hist_id>")
+@login_required
+def delete_historique(hist_id):
+    user_id = session.get("user_id")
+
+    historique = db.session.get(Historique, hist_id)
+
+    if not historique or historique.user_id != user_id:
+        flash("Action introuvable.")
+        return redirect(url_for("historique_page"))
+
+    db.session.delete(historique)
+    db.session.commit()
+
+    flash("Action supprimée.")
+    return redirect(url_for("historique_page"))
+    
+        
 # -------------------------
 # DO ACTION
 # -------------------------
