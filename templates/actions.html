@@ -2,6 +2,7 @@
 
 {% block content %}
 
+
 <!-- 🔔 NOTIFICATION -->
 {% if notification %}
 <div class="notification-banner">
@@ -22,6 +23,10 @@
     <h2>🌱 Actions écologiques</h2>
 
     <div class="nav-buttons">
+        <a href="{{ url_for('historique_page') }}" class="btn-historique">
+            📜 Historique
+        </a>
+
         <a href="/settings" class="btn btn-gray">⚙ Paramètres</a>
         <a href="/logout" class="btn btn-red">🚪 Déconnexion</a>
     </div>
