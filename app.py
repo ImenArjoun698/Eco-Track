@@ -11,7 +11,7 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 
 # -------------------------
-# SECURITE LOGIN REQUIRED
+# LOGIN REQUIRED
 # -------------------------
 def login_required(f):
     @wraps(f)
@@ -93,17 +93,30 @@ def actions_page():
     actions = Action.query.all()
     historiques = Historique.query.filter_by(user_id=user_id).all()
 
-    score_total = 0
-    for h in historiques:
-        action = db.session.get(Action, h.action_id)
-        if action:
-            score_total += action.points
+    # SCORE
+    score_total = sum(
+        db.session.get(Action, h.action_id).points
+        for h in historiques
+        if db.session.get(Action, h.action_id)
+    )
 
     nb_actions_faites = len(historiques)
 
-    # -------------------------
-    # 🎁 RECOMPENSES + NOTIFICATIONS
-    # -------------------------
+    # 🌍 PLANÈTE
+    if score_total < 50:
+        planet = "🌫️"
+        planet_text = "Planète polluée"
+    elif score_total < 150:
+        planet = "🌿"
+        planet_text = "Planète en amélioration"
+    else:
+        planet = "🌳"
+        planet_text = "Planète en pleine santé"
+
+    # 📊 PROGRESSION
+    progress = min(score_total, 100)
+
+    # 🎁 RÉCOMPENSES
     notification = None
     gift = None
 
@@ -122,6 +135,7 @@ def actions_page():
     else:
         notification = f"🚀 Plus que {50 - score_total} points pour débloquer Lidl -10%"
 
+    # 🏆 BADGE
     if score_total >= 100:
         badge = "🌳 Héros écologique"
     elif score_total >= 50:
@@ -136,65 +150,13 @@ def actions_page():
         nb_actions_faites=nb_actions_faites,
         badge=badge,
         notification=notification,
-        gift=gift
+        gift=gift,
+        planet=planet,
+        planet_text=planet_text,
+        progress=progress
     )
 
-# -------------------------
-# HISTORIQUE PAGE
-# -------------------------
-@app.get("/historique")
-@login_required
-def historique_page():
-    user_id = session.get("user_id")
 
-    historiques = (
-        Historique.query
-        .filter_by(user_id=user_id)
-        .order_by(Historique.id.desc())
-        .all()
-    )
-
-    data = []
-    total_points = 0
-
-    for h in historiques:
-        action = db.session.get(Action, h.action_id)
-        if action:
-            data.append({
-                "id": h.id,
-                "name": action.name,
-                "points": action.points
-            })
-            total_points += action.points
-
-    return render_template(
-        "historique.html",
-        historiques=data,
-        total_points=total_points,
-        total_actions=len(data)
-    )
-
-# -------------------------
-# DELETE ACTION FROM HISTORY
-# -------------------------
-@app.post("/historique/delete/<int:hist_id>")
-@login_required
-def delete_historique(hist_id):
-    user_id = session.get("user_id")
-
-    historique = db.session.get(Historique, hist_id)
-
-    if not historique or historique.user_id != user_id:
-        flash("Action introuvable.")
-        return redirect(url_for("historique_page"))
-
-    db.session.delete(historique)
-    db.session.commit()
-
-    flash("Action supprimée.")
-    return redirect(url_for("historique_page"))
-    
-        
 # -------------------------
 # DO ACTION
 # -------------------------
@@ -243,33 +205,6 @@ def settings():
 
 
 # -------------------------
-# UPDATE SETTINGS
-# -------------------------
-@app.post("/settings")
-@login_required
-def update_settings():
-    user_id = session.get("user_id")
-    user = db.session.get(User, user_id)
-
-    firstname = request.form.get("firstname")
-    lastname = request.form.get("lastname")
-    email = request.form.get("email", "").strip().lower()
-
-    if not firstname or not lastname or not email:
-        flash("Tous les champs sont obligatoires.")
-        return redirect(url_for("settings"))
-
-    user.firstname = firstname
-    user.lastname = lastname
-    user.email = email
-
-    db.session.commit()
-
-    flash("Profil mis à jour !")
-    return redirect(url_for("settings"))
-
-
-# -------------------------
 # LOGOUT
 # -------------------------
 @app.get("/logout")
@@ -279,35 +214,15 @@ def logout():
     flash("Déconnecté.")
     return redirect(url_for("login_page"))
 
-# -------------------------
-# CHANGE PASSWORD
-# -------------------------
-@app.post("/settings/change_password")
-@login_required
-def change_password():
-    user_id = session.get("user_id")
-    user = db.session.get(User, user_id)
-
-    old_password = request.form.get("old_password")
-    new_password = request.form.get("new_password")
-
-    if not user.check_password(old_password):
-        flash("Ancien mot de passe incorrect.")
-        return redirect(url_for("settings"))
-
-    user.set_password(new_password)
-    db.session.commit()
-
-    flash("Mot de passe mis à jour !")
-    return redirect(url_for("settings"))
 
 # -------------------------
-# RUN APP
+# RUN
 # -------------------------
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
 
+        # ajouter actions si vide
         if not Action.query.first():
             actions = [
                 Action(name="Vélo (trajet quotidien)", points=10),
@@ -318,7 +233,6 @@ if __name__ == "__main__":
                 Action(name="Extinction des lumières inutiles", points=3),
                 Action(name="Réduction plastique", points=7),
                 Action(name="Plantation d’un arbre", points=15),
-                Action(name="Compostage des déchets organiques", points=8)
             ]
             db.session.add_all(actions)
             db.session.commit()

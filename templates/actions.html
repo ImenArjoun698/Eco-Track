@@ -2,7 +2,6 @@
 
 {% block content %}
 
-
 <!-- 🔔 NOTIFICATION -->
 {% if notification %}
 <div class="notification-banner">
@@ -23,12 +22,33 @@
     <h2>🌱 Actions écologiques</h2>
 
     <div class="nav-buttons">
-        <a href="{{ url_for('historique_page') }}" class="btn-historique">
+        <a href="/historique">
             📜 Historique
         </a>
 
-        <a href="/settings" class="btn btn-gray">⚙ Paramètres</a>
+        <a href="/settings" >⚙ Paramètres</a>
         <a href="/logout" class="btn btn-red">🚪 Déconnexion</a>
+    </div>
+</div>
+
+<!-- 🌍 PLANÈTE -->
+<div style="text-align:center; margin:20px;">
+    <h1 style="font-size:50px;">{{ planet }}</h1>
+    <p>{{ planet_text }}</p>
+</div>
+
+<!-- 📊 BARRE DE PROGRESSION -->
+<div style="width:80%; margin:20px auto;">
+    <div style="background:#ddd; border-radius:20px; overflow:hidden;">
+        <div style="
+            width:{{ progress }}%;
+            background:linear-gradient(90deg, #4CAF50, #2ecc71);
+            color:white;
+            padding:10px;
+            text-align:center;
+            font-weight:bold;">
+            {{ progress }}%
+        </div>
     </div>
 </div>
 
