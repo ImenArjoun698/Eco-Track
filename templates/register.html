@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inscription - GreenApp</title>
+ <link rel="stylesheet" href="{{ url_for('static', filename='style2.css') }}">
+</head>
+<body>
+
+  <div class="container">
+    <div class="card">
+
+      <h1>🌱 Rejoindre GreenApp</h1>
+      <p class="subtitle">Crée ton compte et agis pour le climat</p>
+
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="flash bad">
+            {{ messages[0] }}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <form method="post" action="/register">
+
+        <input name="firstname" type="text" placeholder="Prénom" required>
+
+        <input name="lastname" type="text" placeholder="Nom" required>
+
+        <input name="email" type="email" placeholder="Adresse email" required>
+
+        <input name="password" type="password" placeholder="Mot de passe" required>
+
+        <input name="confirm_password" type="password" placeholder="Confirmer le mot de passe" required>
+
+        <button type="submit">Créer mon compte</button>
+
+      </form>
+
+      <p class="switch">
+        Déjà inscrit ?
+        <a href="/">Se connecter</a>
+      </p>
+
+    </div>
+  </div>
+
+</body>
+</html>

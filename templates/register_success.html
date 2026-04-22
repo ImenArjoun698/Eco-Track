@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inscription réussie - GreenApp</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style2.css') }}">
+</head>
+<body>
+
+  <div class="container">
+    <div class="card">
+
+      <h1>✅ Inscription réussie !</h1>
+      <p class="subtitle">Ton compte a bien été créé.</p>
+
+      {% if email %}
+        <div class="flash ok">
+          Compte créé avec : <strong>{{ email }}</strong>
+        </div>
+      {% endif %}
+
+      <p class="switch">
+        <a href="{{ url_for('login_page') }}">Aller à la connexion</a>
+      </p>
+
+    </div>
+  </div>
+
+</body>
+</html>

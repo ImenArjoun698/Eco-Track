@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+body {
+  background: linear-gradient(135deg, #0f172a, #14532d);
+}
+
+.container.settings {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.card {
+  width: 100%;
+  max-width: 520px;
+  background: rgba(15, 23, 42, 0.92);
+  color: white;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 18px 45px rgba(0,0,0,0.4);
+  text-align: center;
+}
+
+h1 {
+  margin-bottom: 5px;
+}
+
+.subtitle {
+  color: #cbd5e1;
+  margin-bottom: 20px;
+}
+
+h3 {
+  margin-top: 20px;
+  color: #a5d6a7;
+  text-align: left;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 10px;
+  outline: none;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 10px;
+  background: #16a34a;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  background: #15803d;
+}
+
+hr {
+  border: none;
+  height: 1px;
+  background: rgba(255,255,255,0.2);
+  margin: 20px 0;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.stat-box {
+  background: rgba(255,255,255,0.08);
+  padding: 10px;
+  border-radius: 12px;
+}
+
+.stat-number {
+  font-size: 18px;
+  font-weight: bold;
+  color: #00e676;
+}
+
+.badges {
+  margin-top: 10px;
+}
+
+.badges span {
+  display: inline-block;
+  background: rgba(0, 230, 118, 0.15);
+  padding: 6px 10px;
+  margin: 5px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.btn-back {
+  background: #64748b;
+  margin-top: 15px;
+}
+
+.flash {
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
+</style>
+
+<div class="container settings">
+
+  <div class="card">
+
+    <h1>⚙️ Paramètres</h1>
+    <p class="subtitle">Ton espace GreenApp 🌱</p>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="flash">
+          {{ messages[0] }}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- PROFIL -->
+    <h3>👤 Profil</h3>
+
+    <form method="post" action="{{ url_for('update_settings') }}">
+      <input type="text" name="firstname" placeholder="Prénom" required>
+      <input type="text" name="lastname" placeholder="Nom" required>
+      <input type="email" name="email" placeholder="Email" required>
+
+      <button type="submit">💾 Sauvegarder</button>
+    </form>
+
+    <hr>
+
+    <!-- PASSWORD -->
+    <h3>🔐 Sécurité</h3>
+
+   <form method="POST" action="/settings/change_password">
+      <input type="password" name="old_password" placeholder="Ancien mot de passe" required>
+      <input type="password" name="new_password" placeholder="Nouveau mot de passe" required>
+      <input type="password" name="confirm_password" placeholder="Confirmer" required>
+
+      <button type="submit">Changer mot de passe</button>
+    </form>
+
+    <hr>
+
+    <!-- STATS -->
+    <h3>🌍 Impact écologique</h3>
+
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-number">{{ actions_count }}</div>
+        <div>Actions</div>
+      </div>
+
+      <div class="stat-box">
+        <div class="stat-number">{{ co2_saved }}</div>
+        <div>CO₂ sauvé</div>
+      </div>
+
+      <div class="stat-box">
+        <div class="stat-number">{{ level }}</div>
+        <div>Niveau</div>
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- BADGES -->
+    <h3>🏆 Badges</h3>
+
+    <div class="badges">
+      {% if actions_count > 0 %}
+        <span>🌱 Débutant vert</span>
+      {% endif %}
+
+      {% if actions_count > 10 %}
+        <span>♻️ Actif</span>
+      {% endif %}
+
+      {% if actions_count > 50 %}
+        <span>🌍 Champion</span>
+      {% endif %}
+    </div>
+
+    <a href="/actions">
+      <button class="btn-back">⬅ Retour</button>
+    </a>
+
+  </div>
+
+</div>
+
+{% endblock %}
